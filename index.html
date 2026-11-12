@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CloudCostIQ compares public cloud and on-premises infrastructure total cost of ownership.">
+  <title>CloudCostIQ — Infrastructure Cost Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.468.0/font/lucide.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#"><span class="brand-mark">C</span><span>cloudcost<span class="brand-light">IQ</span><small>INFRASTRUCTURE FINANCE</small></span></a>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav class="nav">
+      <a class="nav-link active" href="#overview"><i class="icon icon-layout-dashboard"></i> Overview</a>
+      <a class="nav-link" href="#workload"><i class="icon icon-sliders-horizontal"></i> Workload</a>
+      <a class="nav-link" href="#comparison"><i class="icon icon-cloud"></i> Cloud comparison</a>
+      <a class="nav-link" href="#onprem"><i class="icon icon-server"></i> On-premises</a>
+      <a class="nav-link" href="#breakeven"><i class="icon icon-chart-no-axes-combined"></i> Break-even analysis</a>
+      <a class="nav-link" href="#assumptions"><i class="icon icon-database"></i> Pricing & assumptions</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="data-status"><span class="status-dot"></span><div><b>Pricing snapshot</b><small>US regions · 12 Nov 2026</small></div></div>
+      <div class="sidebar-note">Estimates are planning models, not vendor quotes. Validate final configurations in provider calculators.</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-button menu-button" id="menuToggle" aria-label="Toggle navigation"><i class="icon icon-menu"></i></button>
+      <div class="breadcrumb">Infrastructure finance <span>/</span> <b>Cost analysis</b></div>
+      <div class="top-actions">
+        <span class="snapshot-tag"><span class="status-dot"></span> Snapshot pricing</span>
+        <button class="button button-secondary" id="exportCsv"><i class="icon icon-download"></i> Export CSV</button>
+      </div>
+    </header>
+
+    <section class="page-section" id="overview">
+      <div class="page-heading">
+        <div><div class="eyebrow">COST INTELLIGENCE / US EAST</div><h1>Infrastructure cost overview</h1><p>Compare the five-year economics of renting cloud capacity versus owning infrastructure.</p></div>
+        <div class="heading-actions"><span class="scenario-pill"><span class="status-dot"></span> <span id="scenarioLabel">37signals benchmark</span></span><button class="button button-primary" id="recalculate"><i class="icon icon-refresh-cw"></i> Recalculate</button></div>
+      </div>
+
+      <div class="notice"><i class="icon icon-info"></i><div><b>Model scope</b><span>US East cloud regions · USD · 730 hours/month · configurable workload and operating assumptions. All displayed costs are estimates.</span></div></div>
+
+      <div class="kpi-grid">
+        <article class="kpi-card"><div class="kpi-top"><span>AWS monthly estimate</span><span class="kpi-icon aws">A</span></div><strong id="kpiAws">$—</strong><small id="kpiAwsSub">On-demand compute + services</small></article>
+        <article class="kpi-card"><div class="kpi-top"><span>Google Cloud monthly</span><span class="kpi-icon gcp">G</span></div><strong id="kpiGcp">$—</strong><small id="kpiGcpSub">On-demand compute + services</small></article>
+        <article class="kpi-card"><div class="kpi-top"><span>On-premises initial CapEx</span><span class="kpi-icon capex"><i class="icon icon-server"></i></span></div><strong id="kpiCapex">$—</strong><small>Servers + storage + network + setup</small></article>
+        <article class="kpi-card"><div class="kpi-top"><span>On-premises monthly OpEx</span><span class="kpi-icon opex"><i class="icon icon-gauge"></i></span></div><strong id="kpiOpex">$—</strong><small>Power, colocation, staff and support</small></article>
+      </div>
+
+      <div class="section-title-row"><div><h2>Cost trajectory</h2><p>Cumulative spend over the selected analysis horizon</p></div><div class="segmented" id="horizonControl"><button data-years="5" class="selected">5 years</button><button data-years="7">7 years</button></div></div>
+      <div class="panel chart-panel">
+        <div class="chart-heading"><div><b>Cumulative total cost of ownership</b><small>Initial CapEx is included at month zero for on-premises.</small></div><span class="chart-unit">USD</span></div>
+        <div class="chart-wrap large"><canvas id="trajectoryChart" aria-label="Cumulative cost trajectory chart"></canvas></div>
+        <div class="chart-legend"><span><i class="legend-dot aws-dot"></i>AWS</span><span><i class="legend-dot gcp-dot"></i>Google Cloud</span><span><i class="legend-dot prem-dot"></i>On-premises</span></div>
+      </div>
+
+      <div class="two-column">
+        <div class="panel">
+          <div class="panel-heading"><div><h3>Monthly cost composition</h3><p>Where the money goes by platform</p></div></div>
+          <div class="chart-wrap medium"><canvas id="compositionChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-heading"><div><h3>Five-year TCO comparison</h3><p>Same workload, different operating model</p></div></div>
+          <div class="chart-wrap medium"><canvas id="tcoChart"></canvas></div>
+          <div class="mini-result" id="bestOption">Calculating lowest modeled TCO…</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-section" id="workload">
+      <div class="page-heading compact"><div><div class="eyebrow">01 / WORKLOAD MODEL</div><h2>Workload configuration</h2><p>Use the case-study baseline or define a custom workload.</p></div></div>
+      <div class="panel">
+        <div class="form-toolbar"><div class="segmented" id="workloadMode"><button class="selected" data-mode="benchmark">37signals benchmark</button><button data-mode="custom">Custom workload</button></div><button class="text-button" id="resetInputs"><i class="icon icon-rotate-ccw"></i> Reset inputs</button></div>
+        <div class="form-grid">
+          <label>Required vCPU <input type="number" id="vcpu" min="1" step="1" value="4000"><small>Aggregate compute capacity required</small></label>
+          <label>Memory per vCPU (GiB) <input type="number" id="memoryRatio" min="1" step="1" value="4"><small>Used for sizing context; instance price is bundled</small></label>
+          <label>Object storage (TB) <input type="number" id="storageTb" min="1" step="1" value="10000"><small>Decimal TB for this model</small></label>
+          <label>Internet egress (TB/month) <input type="number" id="egressTb" min="0" step="1" value="200"><small>Outbound internet transfer assumption</small></label>
+          <label>Average compute utilization <div class="range-line"><input type="range" id="utilization" min="20" max="100" value="70"><output id="utilizationOut">70%</output></div><small>Effective demand relative to provisioned capacity</small></label>
+          <label>Managed database allowance (USD / month) <input type="number" id="dbMonthly" min="0" value="25000"><small>Editable placeholder until exact DB shape is priced</small></label>
+          <label>Load balancer allowance (USD / month) <input type="number" id="lbMonthly" min="0" value="2500"><small>Editable service estimate</small></label>
+          <label>Analysis period <select id="years"><option value="5">5 years</option><option value="7">7 years</option></select><small>Used for cumulative TCO</small></label>
+        </div>
+        <div class="assumption-inline"><i class="icon icon-info"></i>Cloud compute is sized to the requested vCPU at the selected utilization. This simplified model does not simulate autoscaling or workload peaks.</div>
+      </div>
+    </section>
+
+    <section class="page-section" id="comparison">
+      <div class="page-heading compact"><div><div class="eyebrow">02 / PUBLIC CLOUD</div><h2>AWS vs Google Cloud</h2><p>Published compute snapshots plus configurable service estimates.</p></div></div>
+      <div class="panel">
+        <div class="table-toolbar"><div><b>Monthly service cost model</b><small>Change the purchase model to explore commitment discounts.</small></div><label class="inline-select">Purchase model <select id="purchaseModel"><option value="ondemand">On-demand</option><option value="1y">1-year commitment</option><option value="3y">3-year commitment</option></select></label></div>
+        <div class="table-scroll"><table><thead><tr><th>Cost component</th><th>AWS</th><th>Google Cloud</th><th>Pricing basis</th></tr></thead><tbody id="cloudTable"></tbody><tfoot id="cloudTotals"></tfoot></table></div>
+        <div class="footnote">AWS commitment discounts in this prototype are editable planning factors, not a quote for a specific Savings Plan. GCP C4 committed-use rates are shown from the published pricing snapshot. Taxes, support plans and all unmodeled services are excluded.</div>
+      </div>
+    </section>
+
+    <section class="page-section" id="onprem">
+      <div class="page-heading compact"><div><div class="eyebrow">03 / OWNED INFRASTRUCTURE</div><h2>On-premises cost model</h2><p>Estimate acquisition and recurring operating costs for a two-site design.</p></div></div>
+      <div class="panel">
+        <div class="subsection-heading"><div><h3>Hardware & facility assumptions</h3><p>Base values are editable; replace estimates with supplier quotes when available.</p></div><span class="assumption-tag">ASSUMPTIONS</span></div>
+        <div class="form-grid">
+          <label>Server price (USD) <input type="number" id="serverPrice" min="1" value="30000"><small>Configured server, not bare chassis</small></label>
+          <label>vCPU per server <input type="number" id="serverVcpu" min="1" value="192"><small>Illustrative logical CPU capacity</small></label>
+          <label>Spare capacity (%) <input type="number" id="sparePct" min="0" max="100" value="10"><small>Additional fleet capacity</small></label>
+          <label>Site redundancy factor <select id="redundancyFactor"><option value="1">1.0× — distributed two-site capacity</option><option value="1.5">1.5× — partial failover reserve</option><option value="2">2.0× — each site can carry full workload</option></select><small>Explicitly models site-level failover capacity</small></label>
+          <label>Storage hardware (USD / usable TB) <input type="number" id="storageCostTb" min="0" value="140"><small>Planning assumption; array quote required</small></label>
+          <label>Rack count <input type="number" id="rackCount" min="1" value="8"><small>Four racks per site in benchmark reference</small></label>
+          <label>Rack / colo cost (USD / month) <input type="number" id="rackMonthly" min="0" value="1500"><small>Planning assumption; power may be separate</small></label>
+          <label>IT load (kW) <input type="number" id="itKw" min="0" step="0.1" value="80"><small>Total IT load across both sites</small></label>
+          <label>Power usage effectiveness (PUE) <input type="number" id="pue" min="1" step="0.05" value="1.5"><small>Facility energy / IT energy</small></label>
+          <label>Electricity price (USD / kWh) <input type="number" id="electricity" min="0" step="0.001" value="0.12"><small>Illustrative US blended tariff</small></label>
+          <label>Network equipment & setup (USD) <input type="number" id="networkCapex" min="0" value="150000"><small>Routers, switches, firewalls, cross-connect setup</small></label>
+          <label>Network / transit (USD / month) <input type="number" id="networkMonthly" min="0" value="5000"><small>Recurring connectivity estimate</small></label>
+          <label>Hardware support (% of hardware / year) <input type="number" id="supportPct" min="0" step="0.5" value="8"><small>Annual support assumption</small></label>
+          <label>Additional engineers <input type="number" id="engineers" min="0" value="2"><small>Incremental staff required for owned estate</small></label>
+          <label>Annual loaded salary / engineer (USD) <input type="number" id="salary" min="0" value="130000"><small>Salary plus benefits and overhead</small></label>
+          <label>Hardware life (years) <select id="hardwareLife"><option value="5">5 years</option><option value="7">7 years</option></select><small>Replacement modeled at end of useful life</small></label>
+        </div>
+        <div class="assumption-inline"><i class="icon icon-alert-circle"></i>Colocation is modeled as a rack charge while electricity is modeled separately. Ensure supplier quotes do not bundle power and cooling, or you may double-count facility costs.</div>
+      </div>
+      <div class="two-column result-grid">
+        <div class="panel"><div class="panel-heading"><div><h3>On-premises acquisition</h3><p>One-time initial investment</p></div></div><div class="big-number" id="capexBreakdown">$—</div><div class="breakdown-list" id="capexList"></div></div>
+        <div class="panel"><div class="panel-heading"><div><h3>Annual operating expense</h3><p>Recurring cost to run the environment</p></div></div><div class="big-number" id="annualOpex">$—</div><div class="breakdown-list" id="opexList"></div></div>
+      </div>
+    </section>
+
+    <section class="page-section" id="breakeven">
+      <div class="page-heading compact"><div><div class="eyebrow">04 / FINANCIAL ANALYSIS</div><h2>Break-even & sensitivity</h2><p>Understand when ownership overtakes cloud and which assumptions matter most.</p></div></div>
+      <div class="two-column">
+        <div class="panel">
+          <div class="panel-heading"><div><h3>Break-even result</h3><p>First month on-premises cumulative cost is below cloud.</p></div></div>
+          <div class="break-even-number" id="breakEvenValue">—</div><div class="break-even-caption" id="breakEvenCaption">Compared with the lowest-cost cloud option</div>
+          <div class="breakdown-list" id="breakEvenDetails"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-heading"><div><h3>Five-year sensitivity</h3><p>Illustrative impact of changing one input at a time by ±20%.</p></div></div>
+          <div class="chart-wrap medium"><canvas id="sensitivityChart"></canvas></div>
+          <div class="footnote">Sensitivity ranks modeled cost impact; it is not a statistical confidence interval.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-section" id="assumptions">
+      <div class="page-heading compact"><div><div class="eyebrow">05 / DATA GOVERNANCE</div><h2>Pricing sources & assumptions</h2><p>Trace every important input to its source or identify it as an assumption.</p></div></div>
+      <div class="panel">
+        <div class="source-list" id="sourceList"></div>
+      </div>
+    </section>
+
+    <footer class="footer"><span>CloudCostIQ · Infrastructure cost intelligence</span><span>Prototype v1.0 · USD · US East</span></footer>
+  </main>
+</div>
+<script src="js/pricing-data.js"></script>
+<script src="js/calculator.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
