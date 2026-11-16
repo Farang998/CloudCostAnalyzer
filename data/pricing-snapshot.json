@@ -1,0 +1,27 @@
+{
+    "snapshot_date": "2026-11-12",
+    "currency": "USD",
+    "regions": {
+      "aws": "us-east-1",
+      "gcp": "us-east4"
+    },
+    "aws": {
+      "instance": "m7i.4xlarge",
+      "vcpu": 16,
+      "memory_gib": 64,
+      "hourly_on_demand": 0.8064,
+      "commitment_discounts_assumption": {
+        "1y": 0.3,
+        "3y": 0.45
+      }
+    },
+    "gcp": {
+      "machine": "c4-standard-8",
+      "vcpu": 8,
+      "memory_gib": 30,
+      "hourly_on_demand": 0.39534,
+      "hourly_1y": 0.2846448,
+      "hourly_3y": 0.2134836
+    },
+    "disclaimer": "Verify all prices in official calculators before use. Database, load balancer, egress and on-prem inputs are simplified allowances or assumptions."
+  }
